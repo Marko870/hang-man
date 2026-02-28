@@ -318,30 +318,30 @@ input::placeholder { color: rgba(255, 255, 255, 0.25); }
 /* ===== GAME SCREEN ===== */
 #game {
   padding: 0;
-  position: fixed;
+  position: fixed !important;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100vw !important;
+  height: 100vh !important;
   overflow: hidden;
+  z-index: 10;
 }
 #gameCanvas {
   display: block;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  z-index: 1;
 }
 
 /* HUD */
 .hud {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  padding: 12px 16px;
+  position: fixed;
+  top: 12px; left: 0; right: 0;
+  padding: 0 16px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  z-index: 20;
+  z-index: 50;
   pointer-events: none;
 }
 .lap-info,
@@ -360,14 +360,14 @@ input::placeholder { color: rgba(255, 255, 255, 0.25); }
 
 /* Leaderboard HUD */
 .leaderboard-hud {
-  position: absolute;
-  top: 70px;
+  position: fixed;
+  top: 80px;
   left: 12px;
   background: rgba(0, 0, 0, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 10px 12px;
-  z-index: 20;
+  z-index: 50;
   pointer-events: none;
   min-width: 130px;
 }
@@ -392,13 +392,13 @@ input::placeholder { color: rgba(255, 255, 255, 0.25); }
 
 /* Controls */
 .controls {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 16px;
+  position: fixed;
+  bottom: 20px; left: 0; right: 0;
+  padding: 0 16px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  z-index: 20;
+  z-index: 50;
 }
 .steering-area { display: flex; gap: 12px; }
 
