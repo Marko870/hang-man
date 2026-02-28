@@ -393,58 +393,108 @@ input::placeholder { color: rgba(255, 255, 255, 0.25); }
 /* Controls */
 .controls {
   position: fixed;
-  bottom: 20px; left: 0; right: 0;
-  padding: 0 16px;
+  bottom: 24px; left: 0; right: 0;
+  padding: 0 20px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   z-index: 50;
 }
-.steering-area { display: flex; gap: 12px; }
+
+.steering-area {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
 
 .ctrl-btn {
-  width: 64px;
-  height: 64px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   transition: background 0.1s, transform 0.1s;
   touch-action: none;
 }
+/* زر التقدم للأمام أكبر شوي */
+#btnForward {
+  width: 80px;
+  height: 80px;
+  font-size: 1.8rem;
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+}
 .ctrl-btn:active,
 .ctrl-btn.pressed {
-  background: rgba(255, 100, 0, 0.3);
-  border-color: var(--neon-orange);
+  background: rgba(100, 200, 255, 0.25);
+  border-color: rgba(100, 200, 255, 0.7);
+  transform: scale(0.92);
+}
+#btnForward:active,
+#btnForward.pressed {
+  background: rgba(100, 255, 150, 0.3);
+  border-color: var(--neon-green);
+  box-shadow: 0 0 16px rgba(0, 255, 100, 0.4);
   transform: scale(0.92);
 }
 
-.gas-btn {
+/* زر التيربو */
+.turbo-btn {
   width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255,40,0,0.3), rgba(255,100,0,0.2));
-  border: 2px solid rgba(255, 60, 0, 0.5);
+  height: 90px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(255,40,0,0.35), rgba(255,100,0,0.2));
+  border: 2px solid rgba(255, 60, 0, 0.55);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  gap: 6px;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  box-shadow: 0 0 20px rgba(255, 60, 0, 0.3);
+  box-shadow: 0 0 18px rgba(255, 60, 0, 0.3);
+  transition: all 0.1s;
+  padding-bottom: 8px;
 }
-.gas-btn.pressed {
-  background: linear-gradient(135deg, rgba(255,40,0,0.6), rgba(255,100,0,0.5));
-  box-shadow: 0 0 30px rgba(255, 60, 0, 0.6);
+.turbo-btn span {
+  font-size: 2rem;
+  line-height: 1;
+}
+.turbo-btn.pressed {
+  background: linear-gradient(160deg, rgba(255,40,0,0.65), rgba(255,120,0,0.5));
+  box-shadow: 0 0 28px rgba(255, 80, 0, 0.7);
+  transform: scale(0.93);
+}
+.turbo-btn.empty {
+  border-color: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  box-shadow: none;
+  opacity: 0.5;
+}
+/* شريط التيربو */
+.turbo-bar-wrap {
+  width: 56px;
+  height: 7px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.turbo-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff4400, #ffcc00);
+  border-radius: 4px;
+  transition: width 0.1s linear;
 }
 
 /* ===== RESULTS ===== */
