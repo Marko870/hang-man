@@ -1,87 +1,37 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🏎️ RaceFire</title>
-  <link rel="stylesheet" href="index.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+* { touch-action: none; }
+body { background:#111; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; gap:20px; }
+.btn { width:80px; height:80px; border-radius:50%; background:rgba(255,100,0,.3); border:2px solid orange; color:white; font-size:1.5rem; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.btn.pressed { background:rgba(255,100,0,.8); }
+#status { color:white; font-size:1.2rem; font-family:monospace; }
+</style>
 </head>
 <body>
+<div id="status">جرّب الأزرار</div>
+<div style="display:flex;gap:20px">
+  <div class="btn" id="btnLeft">◀</div>
+  <div class="btn" id="btnRight">▶</div>
+</div>
+<div class="btn" id="btnGas">⚡</div>
 
-  <!-- ===== LOBBY ===== -->
-  <div class="screen" id="lobby">
-    <div class="logo">🏎️ RACE<span>FIRE</span></div>
-    <div class="subtitle">سباق النار التنافسي</div>
+<script>
+const K = {L:false, R:false, G:false};
 
-    <div class="card">
-      <h3>👤 أدخل اسمك</h3>
-      <div class="input-group">
-        <input type="text" id="playerName" placeholder="اسمك هنا..." maxlength="12">
-      </div>
-    </div>
+function bind(id, key, label){
+  const el = document.getElementById(id);
+  el.addEventListener('touchstart',  e=>{ e.preventDefault(); K[key]=true;  el.classList.add('pressed');    document.getElementById('status').textContent = label + ' مضغوط'; }, {passive:false});
+  el.addEventListener('touchend',    e=>{ e.preventDefault(); K[key]=false; el.classList.remove('pressed'); document.getElementById('status').textContent = label + ' مرفوع'; }, {passive:false});
+  el.addEventListener('mousedown',   ()=>{ K[key]=true;  el.classList.add('pressed');    document.getElementById('status').textContent = label + ' مضغوط'; });
+  el.addEventListener('mouseup',     ()=>{ K[key]=false; el.classList.remove('pressed'); document.getElementById('status').textContent = label + ' مرفوع'; });
+}
 
-    <div class="card opponents-card">
-      <h3>🤖 عدد المنافسين</h3>
-      <div class="opponent-btns">
-        <button class="opp-btn active" data-count="1" onclick="selectOpponents(1)">1</button>
-        <button class="opp-btn"        data-count="2" onclick="selectOpponents(2)">2</button>
-        <button class="opp-btn"        data-count="3" onclick="selectOpponents(3)">3</button>
-      </div>
-    </div>
-
-    <button class="btn btn-primary start-main-btn" onclick="goToGame()">🚀 ابدأ السباق!</button>
-  </div>
-
-  <!-- ===== COUNTDOWN ===== -->
-  <div class="screen hidden" id="countdown">
-    <div class="countdown-label">السباق يبدأ في</div>
-    <div class="countdown-num" id="countNum">3</div>
-  </div>
-
-  <!-- ===== GAME ===== -->
-  <div class="screen hidden" id="game">
-    <canvas id="gameCanvas"></canvas>
-
-    <!-- HUD -->
-    <div class="hud">
-      <div class="speed-display">
-        <div class="label">KM/H</div>
-        <div class="value" id="speedDisplay">0</div>
-      </div>
-      <div class="lap-info">
-        <div class="label">لفّة</div>
-        <div class="value" id="lapDisplay">1 / 3</div>
-      </div>
-    </div>
-
-    <!-- لوحة الترتيب -->
-    <div class="leaderboard-hud">
-      <div class="lb-title">STANDINGS</div>
-      <div id="lbRows"></div>
-    </div>
-
-    <!-- أزرار التحكم — بدون inline handlers -->
-    <div class="controls">
-      <div class="steering-area">
-        <div class="ctrl-btn" id="btnLeft">◀</div>
-        <div class="ctrl-btn" id="btnRight">▶</div>
-      </div>
-      <div class="gas-btn" id="btnGas">⚡</div>
-    </div>
-  </div>
-
-  <!-- ===== RESULTS ===== -->
-  <div class="screen hidden" id="results">
-    <div class="winner-title" id="winnerTitle">🏆 نتائج السباق</div>
-    <div class="podium" id="podium"></div>
-    <div class="result-time" id="resultTime"></div>
-    <button class="btn btn-primary" style="max-width:220px" onclick="goLobby()">🔄 سباق جديد</button>
-  </div>
-
-  <!-- ===== UTILITIES ===== -->
-  <div class="toast" id="toast"></div>
-  <div class="confetti-container" id="confettiContainer"></div>
-
-  <script src="index.js"></script>
+bind('btnLeft',  'L', 'يسار');
+bind('btnRight', 'R', 'يمين');
+bind('btnGas',   'G', 'غاز');
+</script>
 </body>
 </html>
