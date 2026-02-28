@@ -574,3 +574,4 @@ input::placeholder { color: rgba(255, 255, 255, 0.25); }
 @keyframes confettiFall {
   to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
 }
+
