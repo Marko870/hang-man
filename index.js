@@ -59,35 +59,47 @@ function runCountdown(n, cb) {
 // ===== RACE START =====
 function getSize() {
   return {
-    w: document.documentElement.clientWidth  || window.innerWidth,
-    h: document.documentElement.clientHeight || window.innerHeight,
+    w: window.screen.width,
+    h: window.screen.height,
   };
 }
 
+// نحفظ الأبعاد مرة واحدة عند تحميل الصفحة
+let SCREEN_W = window.innerWidth || window.screen.width;
+let SCREEN_H = window.innerHeight || window.screen.height;
+window.addEventListener('resize', () => {
+  SCREEN_W = window.innerWidth || window.screen.width;
+  SCREEN_H = window.innerHeight || window.screen.height;
+});
+
 function startRace() {
+  // نقرأ الأبعاد الآن قبل أي تغيير في الشاشة
+  const finalW = SCREEN_W;
+  const finalH = SCREEN_H;
+
   showScreen('game');
-  // ننتظر حتى الـ DOM يتحدث ويُحسب الحجم الصحيح
+
   setTimeout(() => {
     canvas = document.getElementById('gameCanvas');
     ctx    = canvas.getContext('2d');
-    const sz = getSize();
-    W = canvas.width  = sz.w;
-    H = canvas.height = sz.h;
 
-    // نتأكد إن الـ canvas يملأ الشاشة فعلاً
-    canvas.style.width  = sz.w + 'px';
-    canvas.style.height = sz.h + 'px';
+    W = canvas.width  = finalW;
+    H = canvas.height = finalH;
+
+    console.log('Canvas size:', W, H); // للتأكد — نحذفه لاحقاً
+
+    canvas.style.width    = finalW + 'px';
+    canvas.style.height   = finalH + 'px';
     canvas.style.position = 'fixed';
-    canvas.style.top  = '0';
-    canvas.style.left = '0';
-    canvas.style.zIndex = '1';
+    canvas.style.top      = '0';
+    canvas.style.left     = '0';
+    canvas.style.zIndex   = '1';
 
     window.onresize = () => {
-      const s = getSize();
-      W = canvas.width  = s.w;
-      H = canvas.height = s.h;
-      canvas.style.width  = s.w + 'px';
-      canvas.style.height = s.h + 'px';
+      SCREEN_W = W = canvas.width  = window.innerWidth;
+      SCREEN_H = H = canvas.height = window.innerHeight;
+      canvas.style.width  = W + 'px';
+      canvas.style.height = H + 'px';
       buildTrack();
     };
 
@@ -96,7 +108,7 @@ function startRace() {
     gameRunning   = true;
     raceStartTime = lastTime = performance.now();
     animFrame     = requestAnimationFrame(gameLoop);
-  }, 100);
+  }, 50);
 }
 
 // ===== TRACK =====
@@ -370,3 +382,4 @@ function launchConfetti() {
   }
   setTimeout(() => c.innerHTML = '', 5000);
 }
+
