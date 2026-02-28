@@ -57,24 +57,46 @@ function runCountdown(n, cb) {
 }
 
 // ===== RACE START =====
+function getSize() {
+  return {
+    w: document.documentElement.clientWidth  || window.innerWidth,
+    h: document.documentElement.clientHeight || window.innerHeight,
+  };
+}
+
 function startRace() {
   showScreen('game');
-  requestAnimationFrame(() => {
+  // ننتظر حتى الـ DOM يتحدث ويُحسب الحجم الصحيح
+  setTimeout(() => {
     canvas = document.getElementById('gameCanvas');
     ctx    = canvas.getContext('2d');
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+    const sz = getSize();
+    W = canvas.width  = sz.w;
+    H = canvas.height = sz.h;
+
+    // نتأكد إن الـ canvas يملأ الشاشة فعلاً
+    canvas.style.width  = sz.w + 'px';
+    canvas.style.height = sz.h + 'px';
+    canvas.style.position = 'fixed';
+    canvas.style.top  = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '1';
+
     window.onresize = () => {
-      W = canvas.width  = window.innerWidth;
-      H = canvas.height = window.innerHeight;
+      const s = getSize();
+      W = canvas.width  = s.w;
+      H = canvas.height = s.h;
+      canvas.style.width  = s.w + 'px';
+      canvas.style.height = s.h + 'px';
       buildTrack();
     };
+
     buildTrack();
     initCars();
     gameRunning   = true;
     raceStartTime = lastTime = performance.now();
     animFrame     = requestAnimationFrame(gameLoop);
-  });
+  }, 100);
 }
 
 // ===== TRACK =====
@@ -348,4 +370,3 @@ function launchConfetti() {
   }
   setTimeout(() => c.innerHTML = '', 5000);
 }
-
