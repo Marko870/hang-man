@@ -59,16 +59,22 @@ function runCountdown(n, cb) {
 // ===== RACE START =====
 function startRace() {
   showScreen('game');
-  canvas = document.getElementById('gameCanvas');
-  ctx = canvas.getContext('2d');
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-  window.onresize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; buildTrack(); };
-  buildTrack();
-  initCars();
-  gameRunning = true;
-  raceStartTime = lastTime = performance.now();
-  animFrame = requestAnimationFrame(gameLoop);
+  requestAnimationFrame(() => {
+    canvas = document.getElementById('gameCanvas');
+    ctx    = canvas.getContext('2d');
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    window.onresize = () => {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      buildTrack();
+    };
+    buildTrack();
+    initCars();
+    gameRunning   = true;
+    raceStartTime = lastTime = performance.now();
+    animFrame     = requestAnimationFrame(gameLoop);
+  });
 }
 
 // ===== TRACK =====
@@ -105,243 +111,6 @@ function initCars() {
       aiSkill: 0.85 + Math.random() * 0.25, aiNoise: 0,
     });
   }
-}
-
-// ===== GAME LOOP =====
-function gameLoop(ts) {
-  const dt = Math.min((ts - lastTime) / 1000, 0.05);
-  lastTime = ts;
-  update(dt);
-  render();
-  if (gameRunning) animFrame = requestAnimationFrame(gameLoop);
-}
-
-function update(dt) {
-  cars.forEach(car => {
-    if (car.finished) return;
-    let turning = 0, accel = false;
-
-    if (car.isMe) {
-      turning = keys.left ? -1 : keys.right ? 1 : 0;
-      accel = keys.gas;
-    } else {
-      const ahead = getTrackPos(car.progress + 0.009 * car.aiSkill);
-      const pos   = getTrackPos(car.progress);
-      let da = Math.atan2(ahead.y - pos.y, ahead.x - pos.x) - car.angle;
-      while (da >  Math.PI) da -= Math.PI * 2;
-      while (da < -Math.PI) da += Math.PI * 2;
-      car.aiNoise = car.aiNoise * 0.85 + (Math.random() - 0.5) * 0.4;
-      turning = Math.max(-1, Math.min(1, da * 3 + car.aiNoise));
-      accel = true;
-    }
-
-    const maxSpd = car.isMe ? 200 : (155 + car.id * 8) * car.aiSkill;
-    car.speed = Math.max(0, Math.min(car.speed + ((accel ? 300 : 0) - 130) * dt, maxSpd));
-    car.angle += turning * 2.8 * dt * (car.speed / maxSpd || 0);
-    car.progress += (car.speed * dt) / trackLength;
-
-    if (car.progress >= car.lap) {
-      if (car.lap < TOTAL_LAPS) {
-        car.lap++;
-        if (car.isMe) showToast(`✅ لفّة ${car.lap} / ${TOTAL_LAPS}`);
-      } else {
-        car.finished = true;
-        car.finishTime = performance.now() - raceStartTime;
-        if (car.isMe) { showToast('🏁 أكملت السباق!'); setTimeout(showResults, 1800); }
-      }
-    }
-  });
-  updateHUD();
-  updateLeaderboard();
-}
-
-// ===== RENDER =====
-function render() {
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#060609';
-  ctx.fillRect(0, 0, W, H);
-  drawTrack();
-  drawCars();
-}
-
-function drawLoop(style, width, dash = []) {
-  const n = trackPath.length;
-  ctx.strokeStyle = style; ctx.lineWidth = width;
-  ctx.lineCap = ctx.lineJoin = 'round';
-  ctx.setLineDash(dash);
-  ctx.beginPath();
-  ctx.moveTo(trackPath[0].x, trackPath[0].y);
-  for (let i = 1; i < n; i++) ctx.lineTo(trackPath[i].x, trackPath[i].y);
-  ctx.closePath();
-  ctx.stroke();
-  ctx.setLineDash([]);
-}
-
-function drawTrack() {
-  drawLoop('rgba(20,80,20,0.5)',      TRACK_WIDTH * 2.4);
-  drawLoop('#18182a',                  TRACK_WIDTH);
-  drawLoop('rgba(255,255,255,0.06)',   TRACK_WIDTH - 5);
-  drawLoop('rgba(255,200,0,0.55)',     2.5);
-  drawLoop('rgba(255,255,255,0.15)',   1.5, [18, 16]);
-
-  // خط البداية
-  const sp = trackPath[0], np = trackPath[1];
-  const ang = Math.atan2(np.y - sp.y, np.x - sp.x);
-  const px = Math.cos(ang + Math.PI/2), py = Math.sin(ang + Math.PI/2);
-  ctx.save();
-  for (let i = -3; i < 3; i++) {
-    ctx.fillStyle = i % 2 === 0 ? '#fff' : '#000';
-    ctx.fillRect(sp.x + px*i*9 - 4, sp.y + py*i*9 - 4, 9, 9);
-  }
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.font = 'bold 10px Orbitron, monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('START', sp.x, sp.y - TRACK_WIDTH/2 - 6);
-  ctx.restore();
-}
-
-function drawCars() {
-  [...cars].sort((a,b) => a.progress - b.progress).forEach(car => {
-    const tp  = getTrackPos(car.progress);
-    const off = (car.id - (cars.length-1)/2) * 9;
-    const ox  = tp.x + off * Math.cos(tp.angle + Math.PI/2);
-    const oy  = tp.y + off * Math.sin(tp.angle + Math.PI/2);
-    const cw  = car.isMe ? 15 : 12, ch = car.isMe ? 24 : 19;
-
-    ctx.save();
-    ctx.translate(ox, oy);
-    ctx.rotate(tp.angle + Math.PI/2);
-    ctx.shadowColor = CAR_COLORS[car.id];
-    ctx.shadowBlur  = car.isMe ? 22 : 12;
-
-    // جسم
-    ctx.fillStyle = CAR_COLORS[car.id];
-    ctx.beginPath(); ctx.roundRect(-cw/2, -ch/2, cw, ch, 4); ctx.fill();
-    // ظل
-    ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    ctx.fillRect(-cw/2+1, -ch/2+1, cw-2, ch/2.5);
-    // زجاج
-    ctx.fillStyle = 'rgba(120,220,255,0.55)';
-    ctx.fillRect(-cw/2+2, -ch/2+3, cw-4, ch/3.2);
-    // إطارات
-    ctx.shadowBlur = 0; ctx.fillStyle = '#0a0a0a';
-    [[-cw/2-2.5,-ch/4],[cw/2-1.5,-ch/4],[-cw/2-2.5,ch/6],[cw/2-1.5,ch/6]]
-      .forEach(([wx,wy]) => ctx.fillRect(wx, wy, 4, ch/3.5));
-
-    // لهب العادم
-    if (car.isMe && keys.gas && car.speed > 60) {
-      const fs = 8 + Math.random() * 10;
-      const g  = ctx.createLinearGradient(0, ch/2, 0, ch/2+fs);
-      g.addColorStop(0, 'rgba(255,120,0,1)'); g.addColorStop(1, 'rgba(255,0,0,0)');
-      ctx.fillStyle = g;
-      [-3,3].forEach(x => { ctx.beginPath(); ctx.ellipse(x, ch/2+fs*0.4, 2.5, fs*0.5, 0, 0, Math.PI*2); ctx.fill(); });
-    }
-    ctx.restore();
-
-    // اسم اللاعب
-    if (car.isMe) {
-      ctx.save();
-      ctx.fillStyle = 'rgba(255,210,0,0.95)'; ctx.font = 'bold 11px Cairo,sans-serif';
-      ctx.textAlign = 'center'; ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
-      ctx.fillText('▲ ' + myName, ox, oy - 18);
-      ctx.restore();
-    }
-  });
-}
-
-// ===== HUD =====
-function updateHUD() {
-  const me = cars[0]; if (!me) return;
-  document.getElementById('lapDisplay').textContent   = `${Math.min(me.lap, TOTAL_LAPS)} / ${TOTAL_LAPS}`;
-  document.getElementById('speedDisplay').textContent = Math.round(me.speed);
-}
-
-function updateLeaderboard() {
-  const sorted = [...cars].sort((a,b) => a.finished !== b.finished ? (a.finished ? -1 : 1) : b.progress - a.progress);
-  document.getElementById('lbRows').innerHTML = sorted.map((car, i) => `
-    <div class="lb-row ${car.isMe?'me':''}">
-      <span class="lb-pos">${i+1}</span>
-      <span class="lb-car">${CAR_EMOJIS[car.id]}</span>
-      <span class="lb-name">${car.name}</span>
-      <span class="lb-lap">L${Math.min(car.lap,TOTAL_LAPS)}</span>
-    </div>`).join('');
-}
-
-// ===== RESULTS =====
-function showResults() {
-  gameRunning = false;
-  if (animFrame) cancelAnimationFrame(animFrame);
-
-  const sorted = [...cars].sort((a,b) => {
-    if (a.finished !== b.finished) return a.finished ? -1 : 1;
-    if (a.finishTime != null && b.finishTime != null) return a.finishTime - b.finishTime;
-    return b.progress - a.progress;
-  });
-
-  const winner = sorted[0];
-  document.getElementById('winnerTitle').textContent = winner.isMe ? '🏆 أنت الفائز!' : `🏆 فاز ${winner.name}`;
-
-  const me = sorted.find(c => c.isMe);
-  document.getElementById('resultTime').textContent = me?.finishTime
-    ? `⏱️ وقتك: ${(me.finishTime/1000).toFixed(2)} ثانية` : '';
-
-  const display = sorted.length >= 3 ? [sorted[1], sorted[0], sorted[2]]
-    : sorted.length === 2 ? [null, sorted[0], sorted[1]] : [null, sorted[0], null];
-
-  document.getElementById('podium').innerHTML = display.map((car, i) => car ? `
-    <div class="podium-place ${['p2','p1','p3'][i]}">
-      <div class="podium-car">${CAR_EMOJIS[car.id]}</div>
-      <div class="podium-name">${car.name}</div>
-      <div class="podium-block">${['2','1','3'][i]}</div>
-    </div>` : '<div class="podium-place"></div>').join('');
-
-  showScreen('results');
-  if (winner.isMe) launchConfetti();
-}
-
-// ===== CONTROLS =====
-function pressLeft(v)  { keys.left  = v; document.getElementById('btnLeft').classList.toggle('pressed',v); }
-function pressRight(v) { keys.right = v; document.getElementById('btnRight').classList.toggle('pressed',v); }
-function pressGas(v)   { keys.gas   = v; document.getElementById('btnGas').classList.toggle('pressed',v); }
-
-document.addEventListener('keydown', e => {
-  if (['ArrowLeft','a'].includes(e.key))  { e.preventDefault(); pressLeft(true); }
-  if (['ArrowRight','d'].includes(e.key)) { e.preventDefault(); pressRight(true); }
-  if (['ArrowUp','w',' '].includes(e.key)){ e.preventDefault(); pressGas(true); }
-});
-document.addEventListener('keyup', e => {
-  if (['ArrowLeft','a'].includes(e.key))   pressLeft(false);
-  if (['ArrowRight','d'].includes(e.key))  pressRight(false);
-  if (['ArrowUp','w',' '].includes(e.key)) pressGas(false);
-});
-document.addEventListener('contextmenu', e => e.preventDefault());
-
-// ===== SCREENS =====
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-}
-
-// ===== TOAST =====
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
-}
-
-// ===== CONFETTI =====
-function launchConfetti() {
-  const c = document.getElementById('confettiContainer');
-  c.innerHTML = '';
-  const colors = ['#ff2244','#ffcc00','#00aaff','#00ff88','#ff6600','#fff'];
-  for (let i = 0; i < 100; i++) {
-    const p = document.createElement('div');
-    p.className = 'confetti-piece';
-    p.style.cssText = `left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${1.4+Math.random()*2}s;animation-delay:${Math.random()*0.6}s;width:${5+Math.random()*8}px;height:${5+Math.random()*8}px;`;
-    c.appendChild(p);
-  }
-  setTimeout(() => c.innerHTML = '', 5000);
-}
 }
 
 // ===== GAME LOOP =====
