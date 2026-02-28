@@ -3,7 +3,7 @@
 // ============================================================
 
 const TOTAL_LAPS  = 3;
-const TRACK_WIDTH = 54;
+const TRACK_WIDTH = 80;
 const CAR_COLORS  = ['#ff2244', '#00aaff', '#ffcc00', '#00ff88'];
 const CAR_EMOJIS  = ['🔴', '🔵', '🟡', '🟢'];
 const AI_NAMES    = ['خالد 🤖', 'سارة 🤖', 'علي 🤖'];
@@ -21,7 +21,15 @@ let myName = 'لاعب', opponentCount = 1;
 let gameRunning = false, animFrame = null, lastTime = 0, raceStartTime = 0;
 let canvas, ctx, W, H;
 let trackPath = [], trackLength = 0, cars = [];
-const keys = { left: false, right: false, gas: false };
+const keys = { left: false, right: false, gas: false, turbo: false };
+
+// ===== TURBO =====
+const TURBO_MAX      = 100;  // سعة التيربو الكاملة
+const TURBO_DRAIN    = 45;   // معدل الاستهلاك في الثانية
+const TURBO_CHARGE   = 18;   // معدل الشحن في الثانية
+const TURBO_MIN_USE  = 20;   // الحد الأدنى للاستخدام
+let   turboEnergy    = TURBO_MAX;
+let   turboActive    = false;
 
 // ===== LOBBY =====
 function selectOpponents(n) {
@@ -175,8 +183,23 @@ function update(dt) {
       accel = true;
     }
 
-    const maxSpd = car.isMe ? 200 : (155 + car.id * 8) * car.aiSkill;
-    car.speed = Math.max(0, Math.min(car.speed + ((accel ? 300 : 0) - 130) * dt, maxSpd));
+    // التيربو
+    let isTurbo = false;
+    if (car.isMe) {
+      if (turboActive && turboEnergy > 0) {
+        isTurbo     = true;
+        turboEnergy = Math.max(0, turboEnergy - TURBO_DRAIN * dt);
+        if (turboEnergy <= 0) { turboActive = false; keys.turbo = false; }
+      } else {
+        turboEnergy = Math.min(TURBO_MAX, turboEnergy + TURBO_CHARGE * dt);
+      }
+      updateTurboUI();
+    }
+    const maxSpd = car.isMe
+      ? (isTurbo ? 340 : 200)
+      : (155 + car.id * 8) * car.aiSkill;
+    const accelForce = accel ? (isTurbo ? 500 : 300) : 0;
+    car.speed = Math.max(0, Math.min(car.speed + (accelForce - 130) * dt, maxSpd));
     car.angle += turning * 2.8 * dt * (car.speed / maxSpd || 0);
     car.progress += (car.speed * dt) / trackLength;
 
@@ -340,6 +363,32 @@ function showResults() {
 }
 
 // ===== CONTROLS =====
+function pressTurbo(v) {
+  if (v && turboEnergy >= TURBO_MIN_USE) {
+    turboActive = true;
+    keys.turbo  = true;
+    document.getElementById('btnTurbo').classList.add('pressed');
+  } else if (!v) {
+    turboActive = false;
+    keys.turbo  = false;
+    document.getElementById('btnTurbo').classList.remove('pressed');
+  }
+}
+
+function updateTurboUI() {
+  const pct = (turboEnergy / TURBO_MAX) * 100;
+  const bar = document.getElementById('turboBar');
+  const btn = document.getElementById('btnTurbo');
+  if (bar) bar.style.width = pct + '%';
+  if (btn) {
+    btn.classList.toggle('empty', turboEnergy < TURBO_MIN_USE);
+    // لون الشريط يتغير حسب الكمية
+    if (bar) bar.style.background = pct > 50
+      ? 'linear-gradient(90deg,#ff4400,#ffcc00)'
+      : 'linear-gradient(90deg,#ff2200,#ff6600)';
+  }
+}
+
 function pressLeft(v)  { keys.left  = v; document.getElementById('btnLeft').classList.toggle('pressed',v); }
 function pressRight(v) { keys.right = v; document.getElementById('btnRight').classList.toggle('pressed',v); }
 function pressGas(v)   { keys.gas   = v; document.getElementById('btnGas').classList.toggle('pressed',v); }
@@ -348,11 +397,13 @@ document.addEventListener('keydown', e => {
   if (['ArrowLeft','a'].includes(e.key))  { e.preventDefault(); pressLeft(true); }
   if (['ArrowRight','d'].includes(e.key)) { e.preventDefault(); pressRight(true); }
   if (['ArrowUp','w',' '].includes(e.key)){ e.preventDefault(); pressGas(true); }
+  if (e.key === 'Shift') pressTurbo(true);
 });
 document.addEventListener('keyup', e => {
   if (['ArrowLeft','a'].includes(e.key))   pressLeft(false);
   if (['ArrowRight','d'].includes(e.key))  pressRight(false);
   if (['ArrowUp','w',' '].includes(e.key)) pressGas(false);
+  if (e.key === 'Shift') pressTurbo(false);
 });
 document.addEventListener('contextmenu', e => e.preventDefault());
 
