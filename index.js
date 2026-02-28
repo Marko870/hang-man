@@ -369,4 +369,4 @@ function launchConfetti() {
     c.appendChild(p);
   }
   setTimeout(() => c.innerHTML = '', 5000);
-      }
+                                                          }
