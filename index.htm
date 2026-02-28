@@ -24,8 +24,8 @@
       <h3>🤖 عدد المنافسين</h3>
       <div class="opponent-btns">
         <button class="opp-btn active" data-count="1" onclick="selectOpponents(1)">1</button>
-        <button class="opp-btn" data-count="2" onclick="selectOpponents(2)">2</button>
-        <button class="opp-btn" data-count="3" onclick="selectOpponents(3)">3</button>
+        <button class="opp-btn"        data-count="2" onclick="selectOpponents(2)">2</button>
+        <button class="opp-btn"        data-count="3" onclick="selectOpponents(3)">3</button>
       </div>
     </div>
 
@@ -42,15 +42,15 @@
   <div class="screen hidden" id="game">
     <canvas id="gameCanvas"></canvas>
 
-    <!-- HUD أعلى -->
+    <!-- HUD -->
     <div class="hud">
-      <div class="lap-info">
-        <div class="label">لفّة</div>
-        <div class="value" id="lapDisplay">1 / 3</div>
-      </div>
       <div class="speed-display">
         <div class="label">KM/H</div>
         <div class="value" id="speedDisplay">0</div>
+      </div>
+      <div class="lap-info">
+        <div class="label">لفّة</div>
+        <div class="value" id="lapDisplay">1 / 3</div>
       </div>
     </div>
 
@@ -60,19 +60,13 @@
       <div id="lbRows"></div>
     </div>
 
-    <!-- أزرار التحكم -->
+    <!-- أزرار التحكم — بدون inline handlers -->
     <div class="controls">
       <div class="steering-area">
-        <div class="ctrl-btn" id="btnLeft"
-          ontouchstart="pressLeft(true)" ontouchend="pressLeft(false)"
-          onmousedown="pressLeft(true)" onmouseup="pressLeft(false)">◀</div>
-        <div class="ctrl-btn" id="btnRight"
-          ontouchstart="pressRight(true)" ontouchend="pressRight(false)"
-          onmousedown="pressRight(true)" onmouseup="pressRight(false)">▶</div>
+        <div class="ctrl-btn" id="btnLeft">◀</div>
+        <div class="ctrl-btn" id="btnRight">▶</div>
       </div>
-      <div class="gas-btn" id="btnGas"
-        ontouchstart="pressGas(true)" ontouchend="pressGas(false)"
-        onmousedown="pressGas(true)" onmouseup="pressGas(false)">⚡</div>
+      <div class="gas-btn" id="btnGas">⚡</div>
     </div>
   </div>
 
