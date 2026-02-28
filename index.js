@@ -433,3 +433,4 @@ function launchConfetti() {
   }
   setTimeout(() => c.innerHTML = '', 5000);
 }
+
