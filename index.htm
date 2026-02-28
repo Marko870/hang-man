@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🏎️ RaceFire</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- ===== LOBBY ===== -->
+  <div class="screen" id="lobby">
+    <div class="logo">🏎️ RACE<span>FIRE</span></div>
+    <div class="subtitle">سباق النار التنافسي</div>
+
+    <div class="card">
+      <h3>👤 أدخل اسمك</h3>
+      <div class="input-group">
+        <input type="text" id="playerName" placeholder="اسمك هنا..." maxlength="12">
+      </div>
+    </div>
+
+    <div class="card opponents-card">
+      <h3>🤖 عدد المنافسين</h3>
+      <div class="opponent-btns">
+        <button class="opp-btn active" data-count="1" onclick="selectOpponents(1)">1</button>
+        <button class="opp-btn" data-count="2" onclick="selectOpponents(2)">2</button>
+        <button class="opp-btn" data-count="3" onclick="selectOpponents(3)">3</button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary start-main-btn" onclick="goToGame()">🚀 ابدأ السباق!</button>
+  </div>
+
+  <!-- ===== COUNTDOWN ===== -->
+  <div class="screen hidden" id="countdown">
+    <div class="countdown-label">السباق يبدأ في</div>
+    <div class="countdown-num" id="countNum">3</div>
+  </div>
+
+  <!-- ===== GAME ===== -->
+  <div class="screen hidden" id="game">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD أعلى -->
+    <div class="hud">
+      <div class="lap-info">
+        <div class="label">لفّة</div>
+        <div class="value" id="lapDisplay">1 / 3</div>
+      </div>
+      <div class="speed-display">
+        <div class="label">KM/H</div>
+        <div class="value" id="speedDisplay">0</div>
+      </div>
+    </div>
+
+    <!-- لوحة الترتيب -->
+    <div class="leaderboard-hud">
+      <div class="lb-title">STANDINGS</div>
+      <div id="lbRows"></div>
+    </div>
+
+    <!-- أزرار التحكم -->
+    <div class="controls">
+      <div class="steering-area">
+        <div class="ctrl-btn" id="btnLeft"
+          ontouchstart="pressLeft(true)" ontouchend="pressLeft(false)"
+          onmousedown="pressLeft(true)" onmouseup="pressLeft(false)">◀</div>
+        <div class="ctrl-btn" id="btnRight"
+          ontouchstart="pressRight(true)" ontouchend="pressRight(false)"
+          onmousedown="pressRight(true)" onmouseup="pressRight(false)">▶</div>
+      </div>
+      <div class="gas-btn" id="btnGas"
+        ontouchstart="pressGas(true)" ontouchend="pressGas(false)"
+        onmousedown="pressGas(true)" onmouseup="pressGas(false)">⚡</div>
+    </div>
+  </div>
+
+  <!-- ===== RESULTS ===== -->
+  <div class="screen hidden" id="results">
+    <div class="winner-title" id="winnerTitle">🏆 نتائج السباق</div>
+    <div class="podium" id="podium"></div>
+    <div class="result-time" id="resultTime"></div>
+    <button class="btn btn-primary" style="max-width:220px" onclick="goLobby()">🔄 سباق جديد</button>
+  </div>
+
+  <!-- ===== UTILITIES ===== -->
+  <div class="toast" id="toast"></div>
+  <div class="confetti-container" id="confettiContainer"></div>
+
+  <script src="index.js"></script>
+</body>
+</html>
