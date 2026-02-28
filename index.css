@@ -318,30 +318,30 @@ input::placeholder { color: rgba(255, 255, 255, 0.25); }
 /* ===== GAME SCREEN ===== */
 #game {
   padding: 0;
-  position: fixed !important;
+  position: fixed;
   inset: 0;
-  width: 100vw !important;
-  height: 100vh !important;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
-  z-index: 10;
 }
 #gameCanvas {
   display: block;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  z-index: 1;
+  width: 100vw;
+  height: 100vh;
 }
 
 /* HUD */
 .hud {
-  position: fixed;
-  top: 12px; left: 0; right: 0;
-  padding: 0 16px;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  z-index: 50;
+  z-index: 20;
   pointer-events: none;
 }
 .lap-info,
@@ -360,14 +360,14 @@ input::placeholder { color: rgba(255, 255, 255, 0.25); }
 
 /* Leaderboard HUD */
 .leaderboard-hud {
-  position: fixed;
-  top: 80px;
+  position: absolute;
+  top: 70px;
   left: 12px;
   background: rgba(0, 0, 0, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 10px 12px;
-  z-index: 50;
+  z-index: 20;
   pointer-events: none;
   min-width: 130px;
 }
@@ -392,109 +392,59 @@ input::placeholder { color: rgba(255, 255, 255, 0.25); }
 
 /* Controls */
 .controls {
-  position: fixed;
-  bottom: 24px; left: 0; right: 0;
-  padding: 0 20px;
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  z-index: 50;
+  z-index: 20;
 }
-
-.steering-area {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
+.steering-area { display: flex; gap: 12px; }
 
 .ctrl-btn {
-  width: 70px;
-  height: 70px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   transition: background 0.1s, transform 0.1s;
   touch-action: none;
 }
-/* زر التقدم للأمام أكبر شوي */
-#btnForward {
-  width: 80px;
-  height: 80px;
-  font-size: 1.8rem;
-  border-color: rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.1);
-}
 .ctrl-btn:active,
 .ctrl-btn.pressed {
-  background: rgba(100, 200, 255, 0.25);
-  border-color: rgba(100, 200, 255, 0.7);
-  transform: scale(0.92);
-}
-#btnForward:active,
-#btnForward.pressed {
-  background: rgba(100, 255, 150, 0.3);
-  border-color: var(--neon-green);
-  box-shadow: 0 0 16px rgba(0, 255, 100, 0.4);
+  background: rgba(255, 100, 0, 0.3);
+  border-color: var(--neon-orange);
   transform: scale(0.92);
 }
 
-/* زر التيربو */
-.turbo-btn {
+.gas-btn {
   width: 80px;
-  height: 90px;
-  border-radius: 20px;
-  background: linear-gradient(160deg, rgba(255,40,0,0.35), rgba(255,100,0,0.2));
-  border: 2px solid rgba(255, 60, 0, 0.55);
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,40,0,0.3), rgba(255,100,0,0.2));
+  border: 2px solid rgba(255, 60, 0, 0.5);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  font-size: 2rem;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  box-shadow: 0 0 18px rgba(255, 60, 0, 0.3);
-  transition: all 0.1s;
-  padding-bottom: 8px;
+  box-shadow: 0 0 20px rgba(255, 60, 0, 0.3);
 }
-.turbo-btn span {
-  font-size: 2rem;
-  line-height: 1;
-}
-.turbo-btn.pressed {
-  background: linear-gradient(160deg, rgba(255,40,0,0.65), rgba(255,120,0,0.5));
-  box-shadow: 0 0 28px rgba(255, 80, 0, 0.7);
-  transform: scale(0.93);
-}
-.turbo-btn.empty {
-  border-color: rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
-  box-shadow: none;
-  opacity: 0.5;
-}
-/* شريط التيربو */
-.turbo-bar-wrap {
-  width: 56px;
-  height: 7px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.turbo-bar {
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(90deg, #ff4400, #ffcc00);
-  border-radius: 4px;
-  transition: width 0.1s linear;
+.gas-btn.pressed {
+  background: linear-gradient(135deg, rgba(255,40,0,0.6), rgba(255,100,0,0.5));
+  box-shadow: 0 0 30px rgba(255, 60, 0, 0.6);
 }
 
 /* ===== RESULTS ===== */
@@ -573,5 +523,4 @@ input::placeholder { color: rgba(255, 255, 255, 0.25); }
 }
 @keyframes confettiFall {
   to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-}
-
+                       }
