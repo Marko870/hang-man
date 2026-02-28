@@ -69,7 +69,6 @@ function startRace(){
     window.addEventListener('resize', resize);
     buildTrack();
     spawnCars();
-    setupControls();
     running = true;
     raceT0  = lastT = performance.now();
     raf     = requestAnimationFrame(loop);
@@ -407,6 +406,9 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
 }
+
+// تشغيل الأزرار فور تحميل الصفحة
+document.addEventListener('DOMContentLoaded', setupControls);
 
 // ===== TOAST =====
 function showToast(msg){
