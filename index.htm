@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>🏎️ TurboStrike</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="game.css">
 </head>
 <body>
 
@@ -60,20 +60,9 @@
       <div id="lbList"></div>
     </div>
 
-    <!-- Controls -->
+    <!-- Controls — جويستيك على الكانفاس + أزرار يمين -->
     <div class="ctrl-wrap">
-      <!-- يسار: تحكم اتجاه -->
-      <div class="dpad">
-        <div class="dpad-row">
-          <div class="ctrl-btn" id="btnUp">▲</div>
-        </div>
-        <div class="dpad-row">
-          <div class="ctrl-btn" id="btnLeft">◀</div>
-          <div class="ctrl-btn" id="btnDown">▼</div>
-          <div class="ctrl-btn" id="btnRight">▶</div>
-        </div>
-      </div>
-      <!-- يمين: تيربو + بطء -->
+      <div class="joy-hint">👈 اسحب هنا</div>
       <div class="action-btns">
         <div class="act-btn turbo-btn" id="btnTurbo">⚡<span>TURBO</span></div>
         <div class="act-btn slow-btn"  id="btnSlow">❄️<span>بطّئ</span></div>
@@ -92,7 +81,6 @@
   <div class="toast" id="toast"></div>
   <div class="fx-layer" id="fxLayer"></div>
 
-  <script src="index.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>
-
