@@ -201,12 +201,18 @@ function update(dt, ts){
 
       if(joystick.active){
         const jLen = Math.hypot(joystick.nx, joystick.ny);
-        if(jLen > 0.1){
-          // تحريك مباشر بإحداثيات الجويستيك — بدون أي تحويل زاوية
-          ax = joystick.nx * thrust;
-          ay = joystick.ny * thrust;
-          // السيارة تواجه اتجاه حركتها
-          c.angle = Math.atan2(joystick.ny, joystick.nx) + Math.PI/2;
+        if(jLen > 0.12){
+          // السيارة تتوجه وتتحرك بنفس اتجاه الجويستيك تماماً
+          const targetAngle = Math.atan2(joystick.ny, joystick.nx) + Math.PI/2;
+          let da = targetAngle - c.angle;
+          while(da >  Math.PI) da -= Math.PI*2;
+          while(da < -Math.PI) da += Math.PI*2;
+          // دوران سريع نحو الاتجاه
+          c.angle += da * Math.min(1, dt*10);
+          // دفع للأمام بقوة الجويستيك
+          const dir = c.angle - Math.PI/2;
+          ax = Math.cos(dir) * thrust * Math.min(jLen, 1);
+          ay = Math.sin(dir) * thrust * Math.min(jLen, 1);
         }
       } else {
         // كيبورد
@@ -323,7 +329,6 @@ function update(dt, ts){
       } else if(!c.finished){
         c.finished=true; c.ft=performance.now()-t0;
         if(c.isMe){ showToast('🏁 أكملت السباق!'); setTimeout(showResults,1600); }
-        checkAllDone();
         else { checkAllDone(); }
       }
     }
@@ -335,15 +340,7 @@ function update(dt, ts){
 }
 
 function checkAllDone(){
-  const unfinished = cars.filter(c => !c.finished);
-  // لو ضل متسابق واحد فقط، هو المركز الأخير وينتهي السباق
-  if(unfinished.length <= 1){
-    unfinished.forEach(c => {
-      c.finished = true;
-      c.ft = performance.now() - t0;
-    });
-    setTimeout(showResults, 1200);
-  }
+  if(cars.every(c=>c.finished)) setTimeout(showResults,1200);
 }
 
 // ===== HUD =====
@@ -424,7 +421,7 @@ function drawTrack(){
 
 function drawCars(ts){
   for(const c of cars){
-    const cw=16, ch=26;
+    const cw=c.isMe?17:13, ch=c.isMe?27:21;
     const slowed = ts < c.slowedUntil;
 
     ctx.save();
@@ -656,5 +653,4 @@ function showToast(msg){
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
-}
-
+                                                 }
