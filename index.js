@@ -199,31 +199,37 @@ function update(dt, ts){
       const isTurbo = K.turbo && c.turboFuel > 0;
       const thrust  = isTurbo ? 1100 : 720;
 
-      // جويستيك أو كيبورد
-      const jx = joystick.active ? joystick.nx : (K.right ? 1 : K.left ? -1 : 0);
-      const jy = joystick.active ? joystick.ny : (K.up ? -1 : K.down ? 1 : 0);
-      const jLen = Math.hypot(jx, jy);
-
-      if(jLen > 0.1){
-        // توجيه السيارة نحو اتجاه الجويستيك
-        const targetAngle = Math.atan2(jy, jx) + Math.PI/2;
-        let da = targetAngle - c.angle;
-        while(da >  Math.PI) da -= Math.PI*2;
-        while(da < -Math.PI) da += Math.PI*2;
-        c.angle += da * Math.min(1, dt*8);
-
-        // تقدم بمقدار الجويستيك
-        const dir = c.angle - Math.PI/2;
-        const fwd = jy < 0 ? Math.min(jLen,1) : -Math.min(Math.abs(jy)*.5,0.5);
-        ax += Math.cos(dir)*thrust*Math.max(fwd,0);
-        ay += Math.sin(dir)*thrust*Math.max(fwd,0);
-        if(fwd < 0){ ax += Math.cos(dir)*200*fwd; ay += Math.sin(dir)*200*fwd; }
+      if(joystick.active){
+        const jLen = Math.hypot(joystick.nx, joystick.ny);
+        if(jLen > 0.12){
+          // السيارة تتوجه وتتحرك بنفس اتجاه الجويستيك تماماً
+          const targetAngle = Math.atan2(joystick.ny, joystick.nx) + Math.PI/2;
+          let da = targetAngle - c.angle;
+          while(da >  Math.PI) da -= Math.PI*2;
+          while(da < -Math.PI) da += Math.PI*2;
+          // دوران سريع نحو الاتجاه
+          c.angle += da * Math.min(1, dt*10);
+          // دفع للأمام بقوة الجويستيك
+          const dir = c.angle - Math.PI/2;
+          ax = Math.cos(dir) * thrust * Math.min(jLen, 1);
+          ay = Math.sin(dir) * thrust * Math.min(jLen, 1);
+        }
+      } else {
+        // كيبورد
+        const sr = Math.min(c.spd/maxSpd,.99);
+        if(K.left)  c.angle -= 3.2*dt*(.25+sr*.75);
+        if(K.right) c.angle += 3.2*dt*(.25+sr*.75);
+        if(K.up){
+          const dir = c.angle - Math.PI/2;
+          ax = Math.cos(dir)*thrust;
+          ay = Math.sin(dir)*thrust;
+        }
+        if(K.down){
+          const dir = c.angle - Math.PI/2;
+          ax = -Math.cos(dir)*250;
+          ay = -Math.sin(dir)*250;
+        }
       }
-
-      // كيبورد دوران إضافي
-      const sr = Math.min(c.spd/maxSpd,.99);
-      if(K.left  && !joystick.active) c.angle -= 3.2*dt*(.25+sr*.75);
-      if(K.right && !joystick.active) c.angle += 3.2*dt*(.25+sr*.75);
 
       // turbo fuel
       if(isTurbo){
