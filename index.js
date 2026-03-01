@@ -201,18 +201,12 @@ function update(dt, ts){
 
       if(joystick.active){
         const jLen = Math.hypot(joystick.nx, joystick.ny);
-        if(jLen > 0.12){
-          // السيارة تتوجه وتتحرك بنفس اتجاه الجويستيك تماماً
-          const targetAngle = Math.atan2(joystick.ny, joystick.nx) + Math.PI/2;
-          let da = targetAngle - c.angle;
-          while(da >  Math.PI) da -= Math.PI*2;
-          while(da < -Math.PI) da += Math.PI*2;
-          // دوران سريع نحو الاتجاه
-          c.angle += da * Math.min(1, dt*10);
-          // دفع للأمام بقوة الجويستيك
-          const dir = c.angle - Math.PI/2;
-          ax = Math.cos(dir) * thrust * Math.min(jLen, 1);
-          ay = Math.sin(dir) * thrust * Math.min(jLen, 1);
+        if(jLen > 0.1){
+          // تحريك مباشر بإحداثيات الجويستيك — بدون أي تحويل زاوية
+          ax = joystick.nx * thrust;
+          ay = joystick.ny * thrust;
+          // السيارة تواجه اتجاه حركتها
+          c.angle = Math.atan2(joystick.ny, joystick.nx) + Math.PI/2;
         }
       } else {
         // كيبورد
@@ -653,4 +647,4 @@ function showToast(msg){
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
-                                                 }
+                           }
