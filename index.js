@@ -323,6 +323,7 @@ function update(dt, ts){
       } else if(!c.finished){
         c.finished=true; c.ft=performance.now()-t0;
         if(c.isMe){ showToast('🏁 أكملت السباق!'); setTimeout(showResults,1600); }
+        checkAllDone();
         else { checkAllDone(); }
       }
     }
@@ -334,7 +335,15 @@ function update(dt, ts){
 }
 
 function checkAllDone(){
-  if(cars.every(c=>c.finished)) setTimeout(showResults,1200);
+  const unfinished = cars.filter(c => !c.finished);
+  // لو ضل متسابق واحد فقط، هو المركز الأخير وينتهي السباق
+  if(unfinished.length <= 1){
+    unfinished.forEach(c => {
+      c.finished = true;
+      c.ft = performance.now() - t0;
+    });
+    setTimeout(showResults, 1200);
+  }
 }
 
 // ===== HUD =====
@@ -415,7 +424,7 @@ function drawTrack(){
 
 function drawCars(ts){
   for(const c of cars){
-    const cw=c.isMe?17:13, ch=c.isMe?27:21;
+    const cw=16, ch=26;
     const slowed = ts < c.slowedUntil;
 
     ctx.save();
