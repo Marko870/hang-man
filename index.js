@@ -34,6 +34,15 @@ let running = false, raf = null, lastT = 0, t0 = 0;
 // مفاتيح اللاعب
 const K = { up:false, down:false, left:false, right:false, turbo:false, slow:false };
 
+// جويستيك
+const joystick = {
+  active:false, id:null,
+  baseX:0, baseY:0,
+  curX:0, curY:0,
+  nx:0, ny:0,   // normalized -1..1
+  radius:55,
+};
+
 // ===== LOBBY =====
 document.querySelectorAll('.opp-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -83,6 +92,7 @@ function initRace(){
     buildTrack();
     spawnCars();
     bindControls();
+    setupJoystickTouch();
     running = true;
     t0 = lastT = performance.now();
     raf = requestAnimationFrame(gameLoop);
@@ -180,32 +190,40 @@ function update(dt, ts){
 
     const slowed = ts < c.slowedUntil;
     const spdMul = slowed ? 0.38 : 1;
-    const maxSpd = (c.isMe ? 260 : (140+c.id*14)*c.sk) * spdMul;
+    const maxSpd = (c.isMe ? 360 : (180+c.id*16)*c.sk) * spdMul;
 
     let ax=0, ay=0;
 
     if(c.isMe){
       // ── حركة اللاعب ──
       const isTurbo = K.turbo && c.turboFuel > 0;
-      const thrust  = isTurbo ? 700 : 420;
+      const thrust  = isTurbo ? 1100 : 720;
 
-      // تقدم للأمام باتجاه السيارة
-      if(K.up){
+      // جويستيك أو كيبورد
+      const jx = joystick.active ? joystick.nx : (K.right ? 1 : K.left ? -1 : 0);
+      const jy = joystick.active ? joystick.ny : (K.up ? -1 : K.down ? 1 : 0);
+      const jLen = Math.hypot(jx, jy);
+
+      if(jLen > 0.1){
+        // توجيه السيارة نحو اتجاه الجويستيك
+        const targetAngle = Math.atan2(jy, jx) + Math.PI/2;
+        let da = targetAngle - c.angle;
+        while(da >  Math.PI) da -= Math.PI*2;
+        while(da < -Math.PI) da += Math.PI*2;
+        c.angle += da * Math.min(1, dt*8);
+
+        // تقدم بمقدار الجويستيك
         const dir = c.angle - Math.PI/2;
-        ax += Math.cos(dir)*thrust;
-        ay += Math.sin(dir)*thrust;
-      }
-      // تراجع للخلف
-      if(K.down){
-        const dir = c.angle - Math.PI/2;
-        ax -= Math.cos(dir)*200;
-        ay -= Math.sin(dir)*200;
+        const fwd = jy < 0 ? Math.min(jLen,1) : -Math.min(Math.abs(jy)*.5,0.5);
+        ax += Math.cos(dir)*thrust*Math.max(fwd,0);
+        ay += Math.sin(dir)*thrust*Math.max(fwd,0);
+        if(fwd < 0){ ax += Math.cos(dir)*200*fwd; ay += Math.sin(dir)*200*fwd; }
       }
 
-      // دوران
+      // كيبورد دوران إضافي
       const sr = Math.min(c.spd/maxSpd,.99);
-      if(K.left)  c.angle -= 3.0*dt*(.25+sr*.75);
-      if(K.right) c.angle += 3.0*dt*(.25+sr*.75);
+      if(K.left  && !joystick.active) c.angle -= 3.2*dt*(.25+sr*.75);
+      if(K.right && !joystick.active) c.angle += 3.2*dt*(.25+sr*.75);
 
       // turbo fuel
       if(isTurbo){
@@ -343,6 +361,7 @@ function render(ts){
   ctx.fillStyle='#070710'; ctx.fillRect(0,0,W,H);
   drawTrack();
   drawCars(ts);
+  drawJoystick();
 }
 
 function loopStroke(col, w, dash=[]){
@@ -481,6 +500,81 @@ function showResults(){
     </div>`:'<div class="pod-place"></div>').join('');
   show('sResults');
   if(win.isMe) confetti();
+}
+
+// ===== JOYSTICK DRAW =====
+function drawJoystick(){
+  if(!running) return;
+  const bx = joystick.active ? joystick.baseX : W*0.18;
+  const by = joystick.active ? joystick.baseY : H*0.82;
+  const r  = joystick.radius;
+
+  // قاعدة
+  ctx.save();
+  ctx.globalAlpha = joystick.active ? 0.55 : 0.22;
+  ctx.strokeStyle = 'rgba(255,255,255,.5)';
+  ctx.lineWidth   = 2;
+  ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI*2); ctx.stroke();
+  ctx.globalAlpha = joystick.active ? 0.12 : 0.06;
+  ctx.fillStyle   = '#fff';
+  ctx.fill();
+
+  // ذراع
+  const kx = joystick.active ? joystick.curX : bx;
+  const ky = joystick.active ? joystick.curY : by;
+  ctx.globalAlpha = joystick.active ? 0.85 : 0.3;
+  ctx.shadowColor = '#ff6600'; ctx.shadowBlur = joystick.active ? 18 : 0;
+  ctx.fillStyle   = joystick.active ? 'rgba(255,150,0,.9)' : 'rgba(255,255,255,.6)';
+  ctx.beginPath(); ctx.arc(kx, ky, r*0.38, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+// ===== JOYSTICK TOUCH =====
+function setupJoystickTouch(){
+  const gameEl = document.getElementById('sGame');
+
+  gameEl.addEventListener('touchstart', e=>{
+    for(const t of e.changedTouches){
+      // فقط اللمسات على النصف الأيسر من الشاشة
+      if(t.clientX < W*0.55 && !joystick.active){
+        joystick.active = true;
+        joystick.id     = t.identifier;
+        joystick.baseX  = t.clientX;
+        joystick.baseY  = t.clientY;
+        joystick.curX   = t.clientX;
+        joystick.curY   = t.clientY;
+        joystick.nx=0; joystick.ny=0;
+      }
+    }
+  },{passive:false});
+
+  gameEl.addEventListener('touchmove', e=>{
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      if(t.identifier === joystick.id){
+        const dx = t.clientX - joystick.baseX;
+        const dy = t.clientY - joystick.baseY;
+        const len= Math.hypot(dx,dy);
+        const clamped = Math.min(len, joystick.radius);
+        const angle   = Math.atan2(dy, dx);
+        joystick.curX = joystick.baseX + Math.cos(angle)*clamped;
+        joystick.curY = joystick.baseY + Math.sin(angle)*clamped;
+        joystick.nx   = (joystick.curX - joystick.baseX) / joystick.radius;
+        joystick.ny   = (joystick.curY - joystick.baseY) / joystick.radius;
+      }
+    }
+  },{passive:false});
+
+  const endJoy = e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier === joystick.id){
+        joystick.active=false; joystick.id=null;
+        joystick.nx=0; joystick.ny=0;
+      }
+    }
+  };
+  gameEl.addEventListener('touchend',    endJoy, {passive:false});
+  gameEl.addEventListener('touchcancel', endJoy, {passive:false});
 }
 
 // ===== CONTROLS =====
